@@ -1153,28 +1153,50 @@ function showToast(msg) {
 }
 
 // ══════════════════════════════════════════
-//  SAMPLE DATA (first run only)
+//  PRELOAD REAL DATA (first run only)
 // ══════════════════════════════════════════
 function loadSampleData() {
-  if (Object.keys(db).length > 0) return;
-  const samples = [
-    ['2023','1',{retail:41861,team:0,rebate:0,tiktok:73800,ig:33307,nondirect:56,direct:41}],
-    ['2023','3',{retail:69426,team:0,rebate:0,tiktok:75000,ig:35000,nondirect:66,direct:43}],
-    ['2023','5',{retail:582218,team:0,rebate:0,tiktok:76450,ig:37400,nondirect:75,direct:50}],
-    ['2023','7',{retail:694267,team:50000,rebate:80000,tiktok:75800,ig:38020,nondirect:97,direct:56}],
-    ['2023','9',{retail:816449,team:70000,rebate:100000,tiktok:76000,ig:38520,nondirect:109,direct:68}],
-    ['2023','11',{retail:879625,team:90000,rebate:150000,tiktok:79128,ig:40200,nondirect:124,direct:75}],
-    ['2024','1',{retail:1085000,team:120000,rebate:200000,tiktok:100000,ig:50000,nondirect:176,direct:109}],
-    ['2024','3',{retail:1210000,team:150000,rebate:250000,tiktok:129900,ig:51800,nondirect:234,direct:153}],
-    ['2024','5',{retail:1600100,team:200000,rebate:300000,tiktok:136450,ig:55000,nondirect:292,direct:158}],
-    ['2024','7',{retail:1355700,team:180000,rebate:280000,tiktok:144648,ig:63000,nondirect:345,direct:207}],
-    ['2024','9',{retail:962477,team:150000,rebate:250000,tiktok:164540,ig:75000,nondirect:403,direct:223}],
-    ['2024','11',{retail:1261869,team:160000,rebate:270000,tiktok:166500,ig:80000,nondirect:526,direct:284}],
-    ['2025','1',{retail:1200462,team:170000,rebate:280000,tiktok:168300,ig:82100,nondirect:663,direct:330}],
-    ['2025','3',{retail:1321890,team:175000,rebate:290000,tiktok:171700,ig:82500,nondirect:729,direct:384}],
-    ['2025','5',{retail:1205545,team:160000,rebate:260000,tiktok:173000,ig:81100,nondirect:813,direct:415}],
+  // Always overwrite with real data
+  const data = [
+    // ── 2023 ──
+    ['2023','1', {retail:126469,  team:487424, rebate:0,      tiktok:0,     ig:0}],
+    ['2023','2', {retail:161985,  team:259934, rebate:0,      tiktok:0,     ig:0}],
+    ['2023','3', {retail:237425,  team:345853, rebate:0,      tiktok:0,     ig:0}],
+    ['2023','4', {retail:504445,  team:312444, rebate:0,      tiktok:0,     ig:0}],
+    ['2023','5', {retail:378790,  team:315477, rebate:0,      tiktok:0,     ig:0}],
+    ['2023','6', {retail:555440,  team:225100, rebate:0,      tiktok:0,     ig:0}],
+    ['2023','7', {retail:442800,  team:176700, rebate:0,      tiktok:0,     ig:0}],
+    ['2023','8', {retail:510150,  team:193600, rebate:6800,   tiktok:0,     ig:0}],
+    ['2023','9', {retail:683635,  team:166700, rebate:25300,  tiktok:0,     ig:0}],
+    ['2023','10',{retail:332600,  team:172000, rebate:20100,  tiktok:71800, ig:46000}],
+    ['2023','11',{retail:438900,  team:163500, rebate:21300,  tiktok:72000, ig:51500}],
+    ['2023','12',{retail:422900,  team:151700, rebate:19800,  tiktok:73800, ig:54000}],
+    // ── 2024 全年 ──
+    ['2024','1', {retail:1096000, team:427500, rebate:81600,  tiktok:74450, ig:62000}],
+    ['2024','2', {retail:748700,  team:449400, rebate:14800,  tiktok:75000, ig:74500}],
+    ['2024','3', {retail:823800,  team:237600, rebate:85400,  tiktok:75500, ig:75500}],
+    ['2024','4', {retail:1145400, team:243800, rebate:166500, tiktok:76000, ig:75800}],
+    ['2024','5', {retail:377700,  team:381500, rebate:30249,  tiktok:78741, ig:83097}],
+    ['2024','6', {retail:361300,  team:273700, rebate:17539,  tiktok:79128, ig:85520}],
+    ['2024','7', {retail:701500,  team:207400, rebate:53577,  tiktok:79740, ig:86000}],
+    ['2024','8', {retail:921000,  team:289100, rebate:57755,  tiktok:80210, ig:86520}],
+    ['2024','9', {retail:1108200, team:209400, rebate:97132,  tiktok:80200, ig:86600}],
+    ['2024','10',{retail:709200,  team:293100, rebate:61598,  tiktok:80800, ig:87500}],
+    ['2024','11',{retail:603300,  team:269000, rebate:59669,  tiktok:81100, ig:89950}],
+    ['2024','12',{retail:368900,  team:277000, rebate:76590,  tiktok:81200, ig:90000}],
+    // ── 2025 ──
+    ['2025','1', {retail:1072200, team:358000, rebate:125602, tiktok:81500, ig:90200}],
+    ['2025','2', {retail:804800,  team:414900, rebate:93190,  tiktok:81800, ig:90300}],
+    ['2025','3', {retail:714300,  team:270500, rebate:107036, tiktok:82000, ig:91000}],
+    ['2025','4', {retail:816000,  team:279400, rebate:159945, tiktok:82100, ig:91300}],
+    ['2025','5', {retail:403300,  team:222400, rebate:47401,  tiktok:82200, ig:91400}],
+    ['2025','6', {retail:0,       team:0,      rebate:103915, tiktok:82600, ig:91800}],
+    ['2025','7', {retail:0,       team:0,      rebate:0,      tiktok:82600, ig:91800}],
+    ['2025','8', {retail:0,       team:0,      rebate:0,      tiktok:82600, ig:91800}],
+    ['2025','9', {retail:0,       team:0,      rebate:0,      tiktok:82600, ig:91800}],
+    ['2025','10',{retail:0,       team:0,      rebate:0,      tiktok:82600, ig:91800}],
   ];
-  samples.forEach(([y,m,d]) => { db[getKey(y,m)] = d; });
+  data.forEach(([y,m,d]) => { db[getKey(y,m)] = d; });
   saveDB();
 }
 
