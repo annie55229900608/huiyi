@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>惠誼月報表系統</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2330;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #7d8590;
+    --accent1: #58a6ff;
+    --accent2: #3fb950;
+    --accent3: #f78166;
+    --teal: #39c5cf;
+    --blue: #1f6feb;
+    --purple: #8b949e;
+    --gold: #e3b341;
+    --chart1a: #7ecfda;
+    --chart1b: #1f6feb;
+    --chart1c: #8b5cf6;
+    --chart2a: #5bc4d0;
+    --chart2b: #1e5fcc;
+    --chart3a: #7dd3e8;
+    --chart3b: #1a4fa0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Header ── */
+  header {
+    background: linear-gradient(135deg, #0d2137 0%, #0d1117 60%);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+  header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    background: linear-gradient(90deg, var(--teal), var(--accent1));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 2px;
+  }
+  .header-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ── Layout ── */
+  .container { max-width: 1400px; margin: 0 auto; padding: 24px 16px; }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+  }
+  .tab-btn {
+    flex: 1;
+    min-width: 100px;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: transparent;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .tab-btn.active {
+    background: var(--surface2);
+    color: var(--text);
+    box-shadow: 0 1px 8px rgba(0,0,0,.4);
+  }
+  .tab-btn:hover:not(.active) { color: var(--text); background: rgba(255,255,255,.04); }
+
+  /* ── Panels ── */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── Chart Card ── */
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .chart-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .chart-subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
+  .chart-wrap { position: relative; height: 420px; }
+
+  /* ── Inline table (inside chart card) ── */
+  .inline-table-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    margin: 18px 0 8px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── Data Input Section ── */
+  .input-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--teal);
+    letter-spacing: 1px;
+  }
+
+  /* ── Form Grid ── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .form-group label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+    font-weight: 500;
+    letter-spacing: .5px;
+  }
+  .form-group input, .form-group select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 8px 10px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .form-group input:focus, .form-group select:focus {
+    border-color: var(--accent1);
+    box-shadow: 0 0 0 2px rgba(88,166,255,.15);
+  }
+  .form-group select option { background: var(--surface); }
+
+  /* ── Buttons ── */
+  .btn {
+    padding: 9px 18px;
+    border: none;
+    border-radius: 7px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-primary { background: var(--accent1); color: #0d1117; }
+  .btn-primary:hover { background: #79c0ff; transform: translateY(-1px); }
+  .btn-danger { background: rgba(247,129,102,.15); color: var(--accent3); border: 1px solid rgba(247,129,102,.3); }
+  .btn-danger:hover { background: rgba(247,129,102,.25); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-success { background: rgba(63,185,80,.15); color: var(--accent2); border: 1px solid rgba(63,185,80,.3); }
+  .btn-success:hover { background: rgba(63,185,80,.25); }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* ── Data Table ── */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th {
+    background: var(--bg);
+    color: var(--text-muted);
+    padding: 8px 10px;
+    text-align: right;
+    font-weight: 500;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  th:first-child { text-align: left; }
+  td {
+    padding: 7px 10px;
+    border-bottom: 1px solid rgba(48,54,61,.5);
+    text-align: right;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+  }
+  td:first-child { text-align: left; font-family: inherit; font-weight: 500; }
+  tr:hover td { background: rgba(255,255,255,.025); }
+  .delta-pos { color: var(--accent2); font-size: 11px; }
+  .delta-neg { color: var(--accent3); font-size: 11px; }
+  .total-row td { font-weight: 700; color: var(--teal); border-top: 1px solid var(--border); }
+
+  /* ── Inline editable cell ── */
+  .cell-input {
+    width: 100%;
+    min-width: 70px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    padding: 4px 6px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    text-align: right;
+    outline: none;
+    transition: border-color .15s, background .15s;
+  }
+  .cell-input:hover { border-color: var(--border); background: var(--surface2); }
+  .cell-input:focus { border-color: var(--accent1); background: var(--surface2); box-shadow: 0 0 0 2px rgba(88,166,255,.15); }
+
+  /* ── Color dots ── */
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+
+  /* ── Empty state ── */
+  .empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+  .empty-icon { font-size: 32px; margin-bottom: 8px; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--accent2);
+    color: #0d1117;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 999;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all .3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ── Legend ── */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+  .legend-box { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+
+  /* ── Stat pills ── */
+  .stats-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  .stat-pill {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    min-width: 110px;
+  }
+  .stat-pill .label { font-size: 11px; color: var(--text-muted); margin-bottom: 3px; }
+  .stat-pill .value { font-family: 'DM Mono', monospace; font-size: 16px; font-weight: 700; color: var(--text); }
+  .stat-pill .sub { font-size: 11px; color: var(--accent2); margin-top: 1px; }
+
+  .month-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+  .month-chip {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+    font-family: 'DM Mono', monospace;
+  }
+  .month-chip:hover { border-color: var(--accent1); color: var(--accent1); }
+  .month-chip.active { background: var(--accent1); color: #0d1117; border-color: var(--accent1); }
+
+  /* ── Month selector for edit ── */
+  .month-select-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+  @media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr 1fr; }
+    .chart-wrap { height: 320px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>惠誼月報表系統</h1>
+    <div class="header-sub">自動生成圖表 · 月增統計 · 資料永久保存</div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('input')">➕ 資料輸入</button>
+    <button class="tab-btn" onclick="switchTab('chart1')">💰 淨利</button>
+    <button class="tab-btn" onclick="switchTab('chart2')">👥 粉絲</button>
+  </div>
+
+  <!-- ════════ INPUT PANEL ════════ -->
+  <div class="panel active" id="panel-input">
+
+    <!-- Profile / Chart Title Settings -->
+    <div class="input-section">
+      <div class="section-title" style="margin-bottom:12px">🪪 圖表標題設定</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>👤 姓名</label>
+          <input type="text" id="cfg-name" placeholder="例：小明" oninput="saveConfig()">
+        </div>
+        <div class="form-group">
+          <label>🏅 級別</label>
+          <input type="text" id="cfg-level" placeholder="例：鑽石" oninput="saveConfig()">
+        </div>
+        <div class="form-group">
+          <label>🔗 上家</label>
+          <input type="text" id="cfg-upline" placeholder="例：王小華" oninput="saveConfig()">
+        </div>
+        <div class="form-group">
+          <label>📅 年份範圍</label>
+          <input type="text" id="cfg-years" placeholder="例：2023-2025" oninput="saveConfig()">
+        </div>
+      </div>
+    </div>
+
+    <div class="input-section">
+      <div class="section-header">
+        <div class="section-title">➕ 新增月份</div>
+      </div>
+      <div class="month-select-row">
+        <div class="form-group" style="min-width:90px">
+          <label>年份</label>
+          <select id="inp-year"></select>
+        </div>
+        <div class="form-group" style="min-width:75px">
+          <label>月份</label>
+          <select id="inp-month">
+            <option value="1">1月</option><option value="2">2月</option>
+            <option value="3">3月</option><option value="4">4月</option>
+            <option value="5">5月</option><option value="6">6月</option>
+            <option value="7">7月</option><option value="8">8月</option>
+            <option value="9">9月</option><option value="10">10月</option>
+            <option value="11">11月</option><option value="12">12月</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-bottom:8px;font-size:12px;color:var(--text-muted)">💰 淨利</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label><span class="dot" style="background:#7ecfda"></span>零售</label>
+          <input type="number" id="inp-retail" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label><span class="dot" style="background:#1f6feb"></span>團隊</label>
+          <input type="number" id="inp-team" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label><span class="dot" style="background:#8b5cf6"></span>返利</label>
+          <input type="number" id="inp-rebate" placeholder="0" min="0">
+        </div>
+      </div>
+
+      <div style="margin-bottom:8px;font-size:12px;color:var(--text-muted)">👥 粉絲</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label><span class="dot" style="background:#5bc4d0"></span>TikTok</label>
+          <input type="number" id="inp-tiktok" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label><span class="dot" style="background:#1e5fcc"></span>IG</label>
+          <input type="number" id="inp-ig" placeholder="0" min="0">
+        </div>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="addNewMonth()">＋ 新增這個月</button>
+    </div>
+
+    <!-- Editable Table -->
+    <div class="input-section">
+      <div class="section-header">
+        <div class="section-title">📊 月份資料（直接修改即可自動儲存）</div>
+      </div>
+      <div class="table-wrap" id="summary-table-wrap">
+        <div class="empty"><div class="empty-icon">📭</div>尚未新增任何資料</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ CHART 1: 淨利 ════════ -->
+  <div class="panel" id="panel-chart1">
+    <div id="stats1" class="stats-row"></div>
+    <div class="chart-card">
+      <div class="chart-title" id="chart1-title">惠誼淨利</div>
+      <div class="chart-subtitle" id="chart1-sub">三口袋月度淨利堆疊長條圖</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-box" style="background:var(--chart1a)"></div>第一口袋 零售</div>
+        <div class="legend-item"><div class="legend-box" style="background:var(--chart1b)"></div>第二口袋 團隊</div>
+        <div class="legend-item"><div class="legend-box" style="background:var(--chart1c)"></div>第三口袋 返利</div>
+      </div>
+      <div class="chart-wrap"><canvas id="chart1"></canvas></div>
+      <div class="inline-table-title">📋 月份明細</div>
+      <div class="table-wrap" id="table1-wrap"></div>
+    </div>
+  </div>
+
+  <!-- ════════ CHART 2: 粉絲 ════════ -->
+  <div class="panel" id="panel-chart2">
+    <div id="stats2" class="stats-row"></div>
+    <div class="chart-card">
+      <div class="chart-title" id="chart2-title">惠誼粉絲</div>
+      <div class="chart-subtitle" id="chart2-sub">TikTok + IG 月度粉絲堆疊長條圖</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-box" style="background:var(--chart2a)"></div>TikTok</div>
+        <div class="legend-item"><div class="legend-box" style="background:var(--chart2b)"></div>IG</div>
+      </div>
+      <div class="chart-wrap"><canvas id="chart2"></canvas></div>
+      <div class="inline-table-title">📋 月份明細</div>
+      <div class="table-wrap" id="table2-wrap"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+const STORAGE_KEY = 'huiyi_monthly_data_v2';
+const CONFIG_KEY  = 'huiyi_config_v1';
+let db  = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+let cfg = JSON.parse(localStorage.getItem(CONFIG_KEY)  || '{}');
+
+let chartInstances = {};
+
+function saveDB() { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }
+function saveConfig() {
+  cfg = {
+    name:   document.getElementById('cfg-name').value.trim(),
+    level:  document.getElementById('cfg-level').value.trim(),
+    upline: document.getElementById('cfg-upline').value.trim(),
+    years:  document.getElementById('cfg-years').value.trim(),
+  };
+  localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
+  applyConfig();
+}
+function applyConfig() {
+  document.getElementById('cfg-name').value   = cfg.name   || '';
+  document.getElementById('cfg-level').value  = cfg.level  || '';
+  document.getElementById('cfg-upline').value = cfg.upline || '';
+  document.getElementById('cfg-years').value  = cfg.years  || '';
+
+  const name   = cfg.name   ? cfg.name.trim() : '';
+  const level  = cfg.level  ? ` ｜ ${cfg.level}`  : '';
+  const upline = cfg.upline ? ` ｜ 上家：${cfg.upline}` : '';
+  const years  = cfg.years  ? cfg.years.trim() : '';
+
+  document.getElementById('chart1-title').textContent = [years, name, '淨利'].filter(Boolean).join(' ');
+  document.getElementById('chart1-sub').textContent   = `三口袋月度淨利${level}${upline}`;
+  document.getElementById('chart2-title').textContent = [years, name, '粉絲'].filter(Boolean).join(' ');
+  document.getElementById('chart2-sub').textContent   = `TikTok + IG 月度粉絲${level}${upline}`;
+}
+
+function getKey(y, m) { return `${y}-${String(m).padStart(2,'0')}`; }
+function keyLabel(k) {
+  const [y, m] = k.split('-');
+  return `${y.slice(2)}年${parseInt(m)}月`;
+}
+
+function getSortedKeys() {
+  return Object.keys(db).sort();
+}
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+function init() {
+  // Populate year selector
+  const yearSel = document.getElementById('inp-year');
+  const curYear = new Date().getFullYear();
+  for (let y = 2022; y <= curYear + 2; y++) {
+    const o = document.createElement('option');
+    o.value = y; o.textContent = y + '年';
+    if (y === curYear) o.selected = true;
+    yearSel.appendChild(o);
+  }
+  document.getElementById('inp-month').value = new Date().getMonth() + 1;
+  applyConfig();
+  refreshAll();
+}
+
+// ══════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    const names = ['input','chart1','chart2'];
+    b.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  if (name !== 'input') renderCharts();
+}
+
+// ══════════════════════════════════════════
+//  ADD NEW MONTH
+// ══════════════════════════════════════════
+function addNewMonth() {
+  const y = document.getElementById('inp-year').value;
+  const m = document.getElementById('inp-month').value;
+  const key = getKey(y, m);
+  if (db[key]) { showToast('此月份已存在，請直接在表格修改'); return; }
+  db[key] = {
+    retail: parseInt(document.getElementById('inp-retail').value) || 0,
+    team:   parseInt(document.getElementById('inp-team').value)   || 0,
+    rebate: parseInt(document.getElementById('inp-rebate').value) || 0,
+    tiktok: parseInt(document.getElementById('inp-tiktok').value) || 0,
+    ig:     parseInt(document.getElementById('inp-ig').value)     || 0,
+  };
+  saveDB();
+  // Clear inputs
+  ['inp-retail','inp-team','inp-rebate','inp-tiktok','inp-ig'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  refreshAll();
+  document.getElementById('summary-table-wrap').scrollIntoView({ behavior:'smooth', block:'start' });
+  showToast('✅ 已新增 ' + y + '年' + parseInt(m) + '月');
+}
+
+// ══════════════════════════════════════════
+//  REFRESH ALL
+// ══════════════════════════════════════════
+function refreshAll() {
+  renderChips();
+  renderSummaryTable();
+  renderCharts();
+}
+
+// ══════════════════════════════════════════
+//  CHARTS
+// ══════════════════════════════════════════
+Chart.register(ChartDataLabels);
+
+const CHART_DEFAULTS = {
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: '#1c2330',
+      titleColor: '#e6edf3',
+      bodyColor: '#7d8590',
+      borderColor: '#30363d',
+      borderWidth: 1,
+      padding: 10,
+      callbacks: {
+        label: ctx => ' ' + ctx.dataset.label + ': ' + fmtNum(ctx.parsed.y)
+      }
+    },
+    datalabels: {
+      display: ctx => ctx.dataset.data[ctx.dataIndex] > 0,
+      color: '#fff',
+      font: { size: 10, weight: '600', family: 'DM Mono' },
+      formatter: v => v === 0 ? '' : fmtK(v),
+      anchor: 'center',
+      align: 'center',
+      padding: 1,
+      // Only show label on top segment (last dataset) as total above bar
+      listeners: {}
+    }
+  },
+  scales: {
+    x: {
+      stacked: true,
+      ticks: { color: '#7d8590', font: { size: 11 } },
+      grid: { display: false },
+    },
+    y: {
+      stacked: true,
+      ticks: { color: '#7d8590', font: { size: 10 }, callback: v => fmtK(v) },
+      grid: { color: 'rgba(255,255,255,.05)' },
+    }
+  },
+  responsive: true,
+  maintainAspectRatio: false,
+  animation: { duration: 600 }
+};
+
+function fmtNum(n) {
+  if (n === undefined || n === null) return '0';
+  return Number(n).toLocaleString('zh-TW');
+}
+function fmtK(n) {
+  if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+  if (n >= 10000) return (n/10000).toFixed(0) + 'w';
+  if (n >= 1000) return (n/1000).toFixed(0) + 'k';
+  return n;
+}
+function delta(cur, prev) {
+  if (prev === undefined || prev === null) return null;
+  return cur - prev;
+}
+
+function renderCharts() {
+  const keys = getSortedKeys();
+  if (!keys.length) {
+    clearChart('chart1'); clearChart('chart2');
+    ['table1','table2'].forEach(id => {
+      document.getElementById(id + '-wrap').innerHTML = '<div class="empty"><div class="empty-icon">📭</div>尚無資料</div>';
+    });
+    ['stats1','stats2'].forEach(id => document.getElementById(id).innerHTML = '');
+    return;
+  }
+
+  const labels = keys.map(k => {
+    const [y, m] = k.split('-');
+    return parseInt(m) + '月';
+  });
+
+  const retail = keys.map(k => db[k].retail || 0);
+  const team   = keys.map(k => db[k].team   || 0);
+  const rebate = keys.map(k => db[k].rebate  || 0);
+  const tiktok = keys.map(k => db[k].tiktok  || 0);
+  const ig     = keys.map(k => db[k].ig      || 0);
+
+  // Chart 1 – 淨利
+  buildChart('chart1', {
+    labels,
+    datasets: [
+      { label: '第一口袋 零售', data: retail, backgroundColor: '#7ecfda', borderWidth: 0 },
+      { label: '第二口袋 團隊', data: team,   backgroundColor: '#1f6feb', borderWidth: 0 },
+      { label: '第三口袋 返利', data: rebate, backgroundColor: '#8b5cf6', borderWidth: 0 },
+    ]
+  });
+  buildStats('stats1', [
+    { label: '最新月總淨利', val: fmtNum(retail.at(-1)+team.at(-1)+rebate.at(-1)), sub: deltaStr(retail.at(-1)+team.at(-1)+rebate.at(-1), keys.length>1 ? retail.at(-2)+team.at(-2)+rebate.at(-2) : null) },
+    { label: '零售最高月', val: fmtNum(Math.max(...retail)) },
+    { label: '累計總淨利', val: fmtNum(retail.reduce((a,b)=>a+b,0)+team.reduce((a,b)=>a+b,0)+rebate.reduce((a,b)=>a+b,0)) },
+  ]);
+  buildDetailTable('table1-wrap', keys, ['零售','團隊','返利'], [retail,team,rebate], '#7ecfda,#1f6feb,#8b5cf6'.split(','));
+
+  // Chart 2 – 粉絲
+  const totalFollowers = tiktok.map((t,i) => t + ig[i]);
+  const followerDelta  = totalFollowers.map((v,i) => i === 0 ? null : v - totalFollowers[i-1]);
+  buildChart('chart2', {
+    labels,
+    datasets: [
+      { label: 'TikTok', data: tiktok, backgroundColor: '#5bc4d0', borderWidth: 0 },
+      { label: 'IG',     data: ig,     backgroundColor: '#1e5fcc', borderWidth: 0 },
+    ]
+  }, followerDelta);
+  buildStats('stats2', [
+    { label: '最新月總粉絲', val: fmtNum(totalFollowers.at(-1)), sub: deltaStr(totalFollowers.at(-1), keys.length>1 ? totalFollowers.at(-2) : null) },
+    { label: 'TikTok 最新', val: fmtNum(tiktok.at(-1)), sub: deltaStr(tiktok.at(-1), keys.length>1 ? tiktok.at(-2) : null) },
+    { label: 'IG 最新', val: fmtNum(ig.at(-1)), sub: deltaStr(ig.at(-1), keys.length>1 ? ig.at(-2) : null) },
+  ]);
+  buildDetailTable('table2-wrap', keys, ['TikTok','IG'], [tiktok,ig], ['#5bc4d0','#1e5fcc']);
+}
+
+function clearChart(id) {
+  if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
+}
+
+function buildChart(id, data, deltaArr) {
+  clearChart(id);
+  const opts = JSON.parse(JSON.stringify(CHART_DEFAULTS));
+  opts.layout = { padding: { top: deltaArr ? 52 : 38 } };
+
+  // Disable datalabels plugin entirely
+  data.datasets.forEach(ds => { ds.datalabels = { display: false }; });
+  opts.plugins.datalabels = { display: false };
+
+  // ── Custom afterDraw: draw segment values + total + delta manually ──
+  const customLabels = {
+    id: 'customLabels_' + id,
+    afterDraw(chart) {
+      const ctx = chart.ctx;
+      const nDS = chart.data.datasets.length;
+
+      chart.data.datasets.forEach((dataset, dsIdx) => {
+        const meta = chart.getDatasetMeta(dsIdx);
+        meta.data.forEach((bar, barIdx) => {
+          const value = dataset.data[barIdx];
+          if (!value) return;
+          const segH = Math.abs(bar.base - bar.y);
+          if (segH < 16) return;
+
+          const cx = bar.x;
+          const cy = (bar.y + bar.base) / 2;
+
+          // Yellow label with dark bg
+          const label = fmtK(value);
+          ctx.font = 'bold 10px "DM Mono", monospace';
+          const tw = ctx.measureText(label).width;
+          const pad = 3, rh = 14, rw = tw + pad * 2;
+
+          ctx.fillStyle = 'rgba(0,0,0,0.45)';
+          roundRect(ctx, cx - rw/2, cy - rh/2, rw, rh, 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#FFE566';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(label, cx, cy);
+        });
+      });
+
+      // ── Totals + deltas above each bar ──
+      const topMeta = chart.getDatasetMeta(nDS - 1);
+      topMeta.data.forEach((bar, barIdx) => {
+        const total = data.datasets.reduce((s, ds) => s + (ds.data[barIdx] || 0), 0);
+        if (!total) return;
+
+        const cx = bar.x;
+        let topY = bar.y - 5;
+
+        // Delta (粉絲圖)
+        if (deltaArr) {
+          const d = deltaArr[barIdx];
+          if (d !== null && d !== undefined) {
+            const dLabel = (d >= 0 ? '+' : '') + fmtK(d);
+            ctx.font = 'bold 9px "DM Mono", monospace';
+            ctx.fillStyle = d >= 0 ? '#3fb950' : '#f85149';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(dLabel, cx, topY - 1);
+            topY -= 13;
+          }
+        }
+
+        // Total badge
+        const totalLabel = fmtK(total);
+        ctx.font = 'bold 10px "DM Mono", monospace';
+        const tw = ctx.measureText(totalLabel).width;
+        const pad = 4, rh = 15, rw = tw + pad * 2;
+
+        ctx.fillStyle = 'rgba(10,10,10,0.68)';
+        roundRect(ctx, cx - rw/2, topY - rh, rw, rh, 3);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(totalLabel, cx, topY - 1);
+      });
+    }
+  };
+
+  const ctx = document.getElementById(id).getContext('2d');
+  chartInstances[id] = new Chart(ctx, {
+    type: 'bar',
+    data,
+    options: opts,
+    plugins: [ChartDataLabels, customLabels]
+  });
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function buildStats(id, items) {
+  document.getElementById(id).innerHTML = items.map(s =>
+    `<div class="stat-pill"><div class="label">${s.label}</div><div class="value">${s.val}</div>${s.sub ? `<div class="${s.sub.startsWith('+') ? 'delta-pos' : s.sub.startsWith('-') ? 'delta-neg' : 'stat-pill label'}">${s.sub}</div>` : ''}</div>`
+  ).join('');
+}
+
+function deltaStr(cur, prev) {
+  if (prev === null || prev === undefined) return '';
+  const d = cur - prev;
+  if (d === 0) return '±0';
+  return (d > 0 ? '+' : '') + fmtNum(d);
+}
+
+function buildDetailTable(wrapId, keys, colNames, colData, colors) {
+  if (!keys.length) {
+    document.getElementById(wrapId).innerHTML = '<div class="empty"><div class="empty-icon">📭</div>尚無資料</div>';
+    return;
+  }
+
+  let html = '<div class="table-wrap"><table><thead><tr><th>月份</th>';
+  colNames.forEach((n,i) => html += `<th><span class="dot" style="background:${colors[i]}"></span>${n}</th>`);
+  html += '<th>合計</th>';
+  colNames.forEach((n,i) => html += `<th><span class="dot" style="background:${colors[i]}"></span>△${n}</th>`);
+  html += '<th>△合計</th></tr></thead><tbody>';
+
+  let grandTotals = colNames.map(() => 0);
+
+  keys.forEach((key, ri) => {
+    const vals = colData.map(arr => arr[ri]);
+    const total = vals.reduce((a,b) => a+b, 0);
+    grandTotals = grandTotals.map((g,i) => g + vals[i]);
+    const prevVals = ri > 0 ? colData.map(arr => arr[ri-1]) : null;
+    const prevTotal = prevVals ? prevVals.reduce((a,b)=>a+b,0) : null;
+    const [y, m] = key.split('-');
+    html += `<tr><td>${y}年${parseInt(m)}月</td>`;
+    vals.forEach(v => html += `<td>${fmtNum(v)}</td>`);
+    html += `<td><strong>${fmtNum(total)}</strong></td>`;
+    if (prevVals) {
+      vals.forEach((v,i) => {
+        const d = v - prevVals[i];
+        html += `<td class="${d>0?'delta-pos':d<0?'delta-neg':''}">${d>0?'+':''}${fmtNum(d)}</td>`;
+      });
+      const dt = total - prevTotal;
+      html += `<td class="${dt>0?'delta-pos':dt<0?'delta-neg':''} total-delta">${dt>0?'+':''}${fmtNum(dt)}</td>`;
+    } else {
+      colNames.forEach(() => html += '<td>–</td>');
+      html += '<td>–</td>';
+    }
+    html += '</tr>';
+  });
+
+  const grandTotal = grandTotals.reduce((a,b)=>a+b,0);
+  html += `<tr class="total-row"><td>累計</td>`;
+  grandTotals.forEach(g => html += `<td>${fmtNum(g)}</td>`);
+  html += `<td>${fmtNum(grandTotal)}</td>`;
+  colNames.forEach(() => html += '<td>–</td>');
+  html += `<td>–</td></tr>`;
+  html += '</tbody></table></div>';
+
+  document.getElementById(wrapId).innerHTML = html;
+}
+
+// ══════════════════════════════════════════
+//  REFRESH ALL
+// ══════════════════════════════════════════
+function refreshAll() {
+  renderSummaryTable();
+  renderCharts();
+}
+
+// ══════════════════════════════════════════
+//  INLINE EDITABLE TABLE
+// ══════════════════════════════════════════
+function renderSummaryTable() {
+  const keys = getSortedKeys().slice().reverse();
+  const wrap = document.getElementById('summary-table-wrap');
+  if (!keys.length) {
+    wrap.innerHTML = '<div class="empty"><div class="empty-icon">📭</div>尚未新增任何資料<br>請用上方「新增月份」加入</div>';
+    return;
+  }
+
+  const fields = [
+    { key:'retail', label:'零售',   color:'#7ecfda' },
+    { key:'team',   label:'團隊',   color:'#1f6feb' },
+    { key:'rebate', label:'返利',   color:'#8b5cf6' },
+    { key:'tiktok', label:'TikTok', color:'#5bc4d0' },
+    { key:'ig',     label:'IG',     color:'#1e5fcc' },
+  ];
+
+  let html = `<table><thead><tr>
+    <th>月份</th>
+    ${fields.map(f=>`<th><span class="dot" style="background:${f.color}"></span>${f.label}</th>`).join('')}
+    <th></th>
+  </tr></thead><tbody>`;
+
+  keys.forEach(key => {
+    const d = db[key];
+    const [y, m] = key.split('-');
+    html += `<tr>
+      <td style="white-space:nowrap;font-weight:600;color:var(--teal)">${y}/${parseInt(m)}</td>
+      ${fields.map(f => `<td><input class="cell-input" type="number" value="${d[f.key]||0}" min="0"
+        onchange="updateCell('${key}','${f.key}',this.value)"
+        onfocus="this.select()"></td>`).join('')}
+      <td><button class="btn btn-danger btn-sm" onclick="deleteRow('${key}')">🗑</button></td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+
+function updateCell(key, field, value) {
+  if (!db[key]) return;
+  db[key][field] = parseInt(value) || 0;
+  saveDB();
+  renderCharts();
+  showToast('✅ 已自動儲存');
+}
+
+function deleteRow(key) {
+  const [y,m] = key.split('-');
+  if (!confirm(y + '年' + parseInt(m) + '月 確定刪除？')) return;
+  delete db[key];
+  saveDB();
+  refreshAll();
+  showToast('🗑 已刪除');
+}
+
+// ══════════════════════════════════════════
+//  EXPORT / IMPORT
+// ══════════════════════════════════════════
+function exportData() {
+  const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '惠誼月報表_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  showToast('📤 已匯出資料');
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (confirm('確定匯入？將合併現有資料。')) {
+        db = { ...db, ...imported };
+        saveDB();
+        refreshAll();
+        showToast('📥 匯入成功：' + Object.keys(imported).length + ' 筆');
+      }
+    } catch { showToast('⚠️ 檔案格式錯誤'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ══════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// ══════════════════════════════════════════
+//  SAMPLE DATA (first run only)
+// ══════════════════════════════════════════
+function loadSampleData() {
+  if (Object.keys(db).length > 0) return;
+  const samples = [
+    ['2023','1',{retail:41861,team:0,rebate:0,tiktok:73800,ig:33307,nondirect:56,direct:41}],
+    ['2023','3',{retail:69426,team:0,rebate:0,tiktok:75000,ig:35000,nondirect:66,direct:43}],
+    ['2023','5',{retail:582218,team:0,rebate:0,tiktok:76450,ig:37400,nondirect:75,direct:50}],
+    ['2023','7',{retail:694267,team:50000,rebate:80000,tiktok:75800,ig:38020,nondirect:97,direct:56}],
+    ['2023','9',{retail:816449,team:70000,rebate:100000,tiktok:76000,ig:38520,nondirect:109,direct:68}],
+    ['2023','11',{retail:879625,team:90000,rebate:150000,tiktok:79128,ig:40200,nondirect:124,direct:75}],
+    ['2024','1',{retail:1085000,team:120000,rebate:200000,tiktok:100000,ig:50000,nondirect:176,direct:109}],
+    ['2024','3',{retail:1210000,team:150000,rebate:250000,tiktok:129900,ig:51800,nondirect:234,direct:153}],
+    ['2024','5',{retail:1600100,team:200000,rebate:300000,tiktok:136450,ig:55000,nondirect:292,direct:158}],
+    ['2024','7',{retail:1355700,team:180000,rebate:280000,tiktok:144648,ig:63000,nondirect:345,direct:207}],
+    ['2024','9',{retail:962477,team:150000,rebate:250000,tiktok:164540,ig:75000,nondirect:403,direct:223}],
+    ['2024','11',{retail:1261869,team:160000,rebate:270000,tiktok:166500,ig:80000,nondirect:526,direct:284}],
+    ['2025','1',{retail:1200462,team:170000,rebate:280000,tiktok:168300,ig:82100,nondirect:663,direct:330}],
+    ['2025','3',{retail:1321890,team:175000,rebate:290000,tiktok:171700,ig:82500,nondirect:729,direct:384}],
+    ['2025','5',{retail:1205545,team:160000,rebate:260000,tiktok:173000,ig:81100,nondirect:813,direct:415}],
+  ];
+  samples.forEach(([y,m,d]) => { db[getKey(y,m)] = d; });
+  saveDB();
+}
+
+// ══════════════════════════════════════════
+//  START
+// ══════════════════════════════════════════
+loadSampleData();
+init();
+</script>
+</body>
+</html>
